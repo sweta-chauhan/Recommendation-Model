@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jun 10 20:00:36 2020
+
+@author: Sweta Kumari
+"""
+
+import pandas as pd
+import numpy as np
+import data_visualiser.plotter as dv
+import warnings 
+warnings.filterwarnings('ignore')
+
+r_cols = ['user_id', 'movie_id', 'rating', 'unix_timestamp']
+rating_data = pd.read_csv('./dataset/ml-100k/ua.base', sep='\t', names=r_cols, encoding='latin-1')
+#ratings_test = pd.read_csv('./dataset/ml-100k/ua.test', sep='\t', names=r_cols, encoding='latin-1')
+rating_data = rating_data.drop('unix_timestamp',axis=1)
+
+rating_data.user_id.astype(int)
+
+
+u_cols = ['user_id','age','gender','occupation','zip code']
+user_info = pd.read_csv('./dataset/ml-100k/u.user', sep='|', names=u_cols, encoding='latin-1')
+user_info = user_info.drop('zip code', axis=1)
+user_info.user_id.astype(int)
+
+m_cols =['movie_id','movie_name','release_date'] 
+movies_info = pd.read_csv('./dataset/ml-100k/u.item', sep='|', names = m_cols,encoding='latin-1')
+movies_info = movies_info.drop('release_date', axis = 1)
+
+movies_info.movie_id.astype(int)
+
+
+complete_data = user_info.merge(rating_data, on = 'user_id')
+map_sex = {'F':1,'M':0}
+complete_data['gender']= complete_data['gender'].map(map_sex).astype(int)
+complete_data = complete_data.drop('user_id',axis =1 )
+
+age_wise = complete_data.groupby(['age'])
+gender_wise = complete_data.groupby(['gender'])
+occupation_wise = complete_data.groupby(['occupation'])
+
+gender = complete_data.gender.unique()
+occupation = complete_data.occupation.unique()
+distinct_age = complete_data.age.unique()
+
+#distinct_age.sort()
+
+#Age wise field distribution plots
+for i in distinct_age:
+    dv.plotdistribution(age_wise.get_group(i))
+
+#Occupation wise field distribution plots
+for i in occupation:
+    dv.plotdistribution(occupation_wise.get_group(i))
+
+#Gender wise field distribution plots
+for i in gender:
+    dv.plotdistribution(gender_wise.get_group(i))
+
+
+
